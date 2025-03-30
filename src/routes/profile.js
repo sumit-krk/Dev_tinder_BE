@@ -17,7 +17,7 @@ profileRouter.get("/profile/view", userAuth, async (req, res) => {
     } catch (err) {
         throw new Error(err.message);
     }
-})
+});
 
 profileRouter.patch("/profile/edit", userAuth, async (req, res) => {
     try {
