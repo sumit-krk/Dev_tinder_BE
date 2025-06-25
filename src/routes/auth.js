@@ -6,15 +6,17 @@ const { User } = require("../models/user");
 const authRouter= express.Router();
 
 authRouter.post("/signup", async (req, res) => {
-   const {firstName, lastName, emailId, password}=req.body;
+   const {firstName, lastName, emailId, password, photoUrl}=req.body;
    try{
        //validation at api level
        validateSignUpData(req);
        //password hasing
        const hasPassword=await bcrypt.hash(password, 10)
        console.log("hasPassword",hasPassword)
-       const user=new User({firstName, lastName, emailId, password:hasPassword})
-       await user.save();
+       const user=new User({firstName, lastName, emailId, photoUrl, password:hasPassword}) 
+       const savedUser= await user.save();
+       const token = await savedUser.getJWT();
+       res.cookie("token", token);
        res.send("User added successfully....")
    }catch(err){
        res.status(400).send("Error while saving the User" + err);
@@ -35,7 +37,7 @@ authRouter.post("/login", async (req, res) => {
         if (isPassValid) {
             const token = await user.getJWT();
             res.cookie("token", token);
-            res.send("Login successful...");
+            res.send({message:"Login success", data:user});
         } else {
             res.status(401).send("Invalid email/password");
         }
@@ -48,7 +50,7 @@ authRouter.post("/logout", (req, res)=>{
     res.cookie("token", null, {
         expires: new Date(Date.now())
     })
-    res.send("logout successfull");
-})
+    res.status(200).send({status:true, message:"logout successfull"});
+});
 
 module.exports=authRouter;
